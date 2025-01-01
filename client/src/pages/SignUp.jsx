@@ -1,18 +1,72 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { data } from 'react-router-dom'
+
 
 export default function SignUp() {
+
+  const [formData, setFormData] = useState({})
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+
+  const handleChange =(e)=>{
+    setFormData({...formData, [e.target.id]: e.target.value})
+
+  }
+  
+  const handleSubmit = async (e)=>{
+
+    e.preventDefault()
+    try{
+
+      setLoading(true)
+
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', // Important to specify JSON content type
+        },
+        body: JSON.stringify(formData), // Stringify the formData before sending it
+      });
+
+
+      if (!res.ok) {
+        throw new Error('Server error');
+      }
+  
+      if (data.success === false) {
+        setError("Something went wrong. Please try again.");
+      } else {
+        setError(null);
+      }
+
+      setLoading(false);
+
+    }catch(error){
+
+      setLoading(false)
+
+      setError("Failed to reach the server. Please check your connection or try again later.");
+
+    }
+    
+
+  }
+  
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
     <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
       <h2 className="text-2xl font-semibold text-center mb-6">Sign Up</h2>
-      <form>
+      <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
           <input
             type="text"
             id="username"
             className="mt-1 px-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="Enter your username"
+            placeholder="Enter your username" 
+            onChange={handleChange}
+               
           />
         </div>
 
@@ -22,7 +76,8 @@ export default function SignUp() {
             type="email"
             id="email"
             className="mt-1 px-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="Enter your email"
+            placeholder="Enter your email" 
+            onChange={handleChange}
           />
         </div>
 
@@ -32,26 +87,28 @@ export default function SignUp() {
             type="password"
             id="password"
             className="mt-1 px-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="Enter your password"
+            placeholder="Enter your password" 
+            onChange={handleChange}
           />
         </div>
 
-        <button
+        <button disabled={loading}
           type="submit"
           className="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
-          Sign Up
+          {loading? 'Loading....' : 'Sign Up'}
         </button>
 
         <div className="mt-4 text-center">
           <p className="text-sm">
             Have an account?{' '}
-            <a href="/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
+            <a href="/signin" className="text-indigo-600 hover:text-indigo-700 font-medium">
               Sign In
             </a>
           </p>
         </div>
       </form>
+      <p className='text-red-700 mt-5'>{error && "Something went wrong"}</p>
     </div>
   </div>
   )
