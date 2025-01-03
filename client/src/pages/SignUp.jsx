@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { data } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
 
 
 export default function SignUp() {
@@ -7,6 +8,9 @@ export default function SignUp() {
   const [formData, setFormData] = useState({})
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [successMessage, setSuccessMessage] = useState(null)
+
+  const navigate = useNavigate()
 
 
   const handleChange =(e)=>{
@@ -24,23 +28,25 @@ export default function SignUp() {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json', // Important to specify JSON content type
+          'Content-Type': 'application/json', 
         },
-        body: JSON.stringify(formData), // Stringify the formData before sending it
+        body: JSON.stringify(formData), 
       });
 
+      const data = await res.json();
 
       if (!res.ok) {
-        throw new Error('Server error');
+        throw new Error(data.message || 'Server error');
       }
   
-      if (data.success === false) {
-        setError("Something went wrong. Please try again.");
-      } else {
-        setError(null);
-      }
+       setSuccessMessage('Sign-up successful! You can now sign in.');
 
-      setLoading(false);
+       setTimeout(() => {
+         navigate('/signin');
+       }, 2000);
+ 
+       setError(null);
+       setLoading(false);
 
     }catch(error){
 
@@ -108,6 +114,9 @@ export default function SignUp() {
           </p>
         </div>
       </form>
+      {successMessage && (
+          <p className="text-green-600 text-center mt-4">{successMessage}</p> // Success message
+        )}
       <p className='text-red-700 mt-5'>{error && "Something went wrong"}</p>
     </div>
   </div>

@@ -53,11 +53,17 @@ export default function SignIn() {
       } else{
 
         dispatch(signInSuccess(data))
-        navigate('/')
+        // navigate('/')
+
+        if (data.isAdmin) {
+          navigate('/admin-dashboard')
+        } else {
+          navigate('/')
+        }
 
       }
 
-
+      
     } catch (error) {
       // setLoading(false)
       // setError("Failed to reach the server. Please check your connection or try again later.")
