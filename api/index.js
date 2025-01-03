@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { connectToDatabase } from "./database/mongoConnection.js";
 import userRoutes from "./routes/userRoute.js"
 import authRoute from "./routes/authRoute.js"
+import adminRoute from './routes/adminRoute.js'
 import cookieParser from "cookie-parser";
 dotenv.config()
 
@@ -23,4 +24,5 @@ app.listen(3000, ()=>{
 
 app.use("/api/user", userRoutes)
 app.use("/api/auth", authRoute)
+app.use("/api/admin", adminRoute)
 

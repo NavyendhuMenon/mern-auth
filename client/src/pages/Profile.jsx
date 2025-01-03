@@ -40,21 +40,20 @@ export default function Profile() {
     e.preventDefault();
     setSuccessMessage('');
     setErrorMessage('');
-
+  
     if (username.trim() === '') {
       setErrorMessage('Username cannot be blank.');
       return;
     }
-
+  
     if (email.trim() === '') {
       setErrorMessage('Email cannot be blank.');
       return;
     }
-
+  
     try {
       dispatch(updateUserStart());
-      
-      // Creating a FormData object to send the image and other user data
+  
       const formData = new FormData();
       formData.append('username', username);
       formData.append('email', email);
@@ -62,24 +61,31 @@ export default function Profile() {
       if (image) {
         formData.append('profilePicture', image);
       }
-
-      // Simulating an API call for profile update
+  
+      // Log FormData contents
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+  
       const res = await fetch(`/api/user/update/${currentUser._id}`, {
         method: 'POST',
-        body: formData, // Send the FormData object
+        body: formData,
       });
-
+      
       const data = await res.json();
+      console.log('Response Data:', data); 
+      
       if (data.success === false) {
-        dispatch(updateUserFailure(data));
+        dispatch(updateUserFailure({ message: 'Failed to update profile. Please try again.' }));
         setErrorMessage('Failed to update profile. Please try again.');
         return;
       }
-
+      
       dispatch(updateUserSuccess(data));
       setSuccessMessage('Profile updated successfully!');
+      
     } catch (error) {
-      dispatch(updateUserFailure(error));
+      dispatch(updateUserFailure({ message: 'Failed to update profile. Please try again.' }));
       setErrorMessage('Failed to update profile. Please try again.');
     }
   };
@@ -92,12 +98,12 @@ export default function Profile() {
       });
       const data = await res.json();
       if (data.success === false) {
-        dispatch(deleteUserFailure(data));
+        dispatch(deleteUserFailure({ message: 'Failed to delete account. Please try again.' }));
         return;
       }
       dispatch(deleteUserSuccess(data));
     } catch (error) {
-      dispatch(deleteUserFailure(error));
+      dispatch(deleteUserFailure({ message: 'Failed to delete account. Please try again.' }));
     }
   };
 
@@ -214,10 +220,15 @@ export default function Profile() {
           Sign out
         </span>
       </div>
-      <p className="text-red-700 mt-5">{error && 'Something went wrong!'}</p>
+      
+      {/* Displaying error or success message */}
+      <p className="text-red-700 mt-5">
+        {error && error.message ? error.message : ''}
+      </p>
       <p className="text-green-700 mt-5">
         {successMessage && 'User is updated successfully!'}
       </p>
     </div>
   );
 }
+

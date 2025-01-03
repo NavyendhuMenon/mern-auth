@@ -32,56 +32,51 @@ import { errorHandler } from "../utils/errorHandler.js";
 //   };
 
 //update user
-
 export const updateUser = async (req, res, next) => {
-  console.log(req.body);
+  console.log("Request Body: ", req.body); 
+  console.log("Request File: ", req.file);  
+
   
   if (req.user.id !== req.params.id) {
     return next(errorHandler(401, 'You can only update your own account!'));
   }
 
-  // upload.single('profilePicture')(req, res, async (err) => {
-  //   if (err) {
-  //     return next(errorHandler(400, 'Error uploading file. ' + err.message));
-  //   }
+  try {
+    const { username, email, password } = req.body;
 
-    try {
-      const { username, email, password } = req.body;
-
-      if (!username || !email) {
-        return next(errorHandler(400, 'Username and email are required.'));
-      }
-
-      const updateData = {
-        username: username.trim(),
-        email: email.trim(),
-      };
-
-      // If profile picture was uploaded, add its path to the update data
-      if (req.file) {
-        updateData.profilePicture = req.file.path; // Multer stores the file path in req.file.path
-      }
-
-      if (password && password !== '') {
-        updateData.password = bcryptjs.hashSync(password, 10); // Hash the password
-      }
-
-      const updatedUser = await User.findByIdAndUpdate(
-        req.params.id,
-        { $set: updateData },
-        { new: true } // Return the updated user document
-      );
-
-      // Remove password from the response
-      const { password: userPassword, ...restUser } = updatedUser._doc;
-      
-      res.status(200).json(restUser);
-    } catch (error) {
-      next(error); 
+    if (!username || !email) {
+      return next(errorHandler(400, 'Username and email are required.'));
     }
-  // });
-};
 
+    const updateData = {
+      username: username.trim(),
+      email: email.trim(),
+    };
+
+    // If profile picture was uploaded, add its path to the update data
+    if (req.file) {
+      updateData.profilePicture = req.file.path; // Multer stores the file path in req.file.path
+    }
+
+    // If password is provided, hash it
+    if (password && password !== '') {
+      updateData.password = bcryptjs.hashSync(password, 10); // Hash the password
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateData },
+      { new: true } // Return the updated user document
+    );
+
+    // Remove password from the response
+    const { password: userPassword, ...restUser } = updatedUser._doc;
+    
+    res.status(200).json(restUser);
+  } catch (error) {
+    next(error); 
+  }
+};
 
 // delete user
 

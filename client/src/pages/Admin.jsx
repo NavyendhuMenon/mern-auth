@@ -1,17 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function Admin() {
   const [editingUser, setEditingUser] = useState(null);
   const [newUser, setNewUser] = useState({ username: '', email: '', password: '' });
+  const [users, setUsers] = useState([]);
+
+  // Fetch users when the component mounts
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // Function to fetch users from the server
+  const fetchUsers = async () => {
+    const response = await fetch('http://localhost:5173/api/admin/admin-dashboard'); 
+    const data = await response.json();
+    setUsers(data);
+  };
+
+  // Function to handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const url = editingUser ? `/api/admin/users/${editingUser._id}` : '/api/admin/users';    
+    const method = editingUser ? 'PUT' : 'POST';
+
+    const response = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newUser),
+    });
+
+    if (response.ok) {
+      setNewUser({ username: '', email: '', password: '' });
+      setEditingUser(null);
+      fetchUsers(); // Refresh user 
+    }
+  };
+
+  // Function to handle user deletion
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+      fetchUsers(); 
+    }
+  };
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-semibold text-center mb-6">Admin Dashboard</h1>
 
-      {/* Add New User Form */}
+      {/* Add/Edit User Form */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-8">
         <h2 className="text-xl font-semibold mb-4">{editingUser ? 'Edit User' : 'Add New User'}</h2>
-        <form>
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
             <input
@@ -69,23 +110,29 @@ export default function Admin() {
             </tr>
           </thead>
           <tbody>
-            {/* Example User Row */}
-            <tr>
-              <td className="px-6 py-4 text-sm text-gray-900">John Doe</td>
-              <td className="px-6 py-4 text-sm text-gray-900">john.doe@example.com</td>
-              <td className="px-6 py-4 text-sm text-gray-900">
-                <button
-                  onClick={() => setEditingUser({ username: 'John Doe', email: 'john.doe@example.com' })}
-                  className="text-indigo-600 hover:text-indigo-800 mr-3"
-                >
-                  Edit
-                </button>
-                <button className="text-red-600 hover:text-red-800">
-                  Delete
-                </button>
-              </td>
-            </tr>
-            {/* Add more rows here */}
+            {users.map(user => (
+              <tr key={user._id}>
+                <td className="px-6 py-4 text-sm text-gray-900">{user.username}</td>
+                <td className="px-6 py-4 text-sm text-gray-900">{user.email}</td>
+                <td className="px-6 py-4 text-sm text-gray-900">
+                  <button
+                    onClick={() => {
+                      setEditingUser(user);
+                      setNewUser({ username: user.username, email: user.email, password: '' });
+                    }}
+                    className="text-indigo-600 hover:text-indigo-800 mr-3"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(user._id)}
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
